@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2014 Dynare Team
+ * Copyright (C) 2003-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -1601,7 +1601,7 @@ StaticModel::writeStaticBlockMFSFile(const string &basename) const
 }
 
 void
-StaticModel::writeOutput(ostream &output, bool block) const
+StaticModel::writeM_Output(ostream &output, bool block) const
 {
   if (!block)
     return;

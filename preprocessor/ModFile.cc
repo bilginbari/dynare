@@ -532,7 +532,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
 #endif
                           ) const
 {
-  ofstream mOutputFile;
+  ofstream mOutputFile, M_OutputFile;
 
   if (basename.size())
     {
@@ -552,6 +552,16 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
       exit(EXIT_FAILURE);
     }
 
+  string fname(basename + "_M_");
+  fname += ".m";
+  M_OutputFile.open(fname.c_str(), ios::out | ios::binary);
+  if (!M_OutputFile.is_open())
+    {
+      cerr << "ERROR: Can't open file " << fname << " for writing" << endl;
+      exit(EXIT_FAILURE);
+    }
+  writeM_(M_OutputFile, basename);
+
   mOutputFile << "%" << endl
               << "% Status : main Dynare file " << endl
               << "%" << endl
@@ -567,21 +577,24 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
     mOutputFile << "clear M_ options_ oo_ estim_params_ bayestopt_ dataset_;" << endl;
 
   mOutputFile << "tic;" << endl
-	      << "% Save empty dates and dseries objects in memory." << endl
-	      << "dates('initialize');" << endl
-	      << "dseries('initialize');" << endl
-	      << "% Define global variables." << endl
+              << "% Save empty dates and dseries objects in memory." << endl
+              << "dates('initialize');" << endl
+              << "dseries('initialize');" << endl
+              << "% Define global variables." << endl
               << "global M_ oo_ options_ ys0_ ex0_ estimation_info" << endl
               << "options_ = [];" << endl
               << "M_.fname = '" << basename << "';" << endl
               << "%" << endl
               << "% Some global variables initialization" << endl
               << "%" << endl;
+
   config_file.writeHooks(mOutputFile);
   mOutputFile << "global_initialization;" << endl
               << "diary off;" << endl;
   if (!no_log)
     mOutputFile << "diary('" << basename << ".log');" << endl;
+
+  mOutputFile << "M_ = " << basename << "_M_(M_);" << endl;
 
   if (console)
     mOutputFile << "options_.console_mode = 1;" << endl
@@ -591,31 +604,11 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
 
   if (nointeractive)
     mOutputFile << "options_.nointeractive = 1;" << endl;
-    
+
   cout << "Processing outputs ...";
 
+  symbol_table.writeM_Output(M_OutputFile);
   symbol_table.writeOutput(mOutputFile);
-
-  // Initialize M_.Sigma_e, M_.Correlation_matrix, M_.H, and M_.Correlation_matrix_ME
-  mOutputFile << "M_.Sigma_e = zeros(" << symbol_table.exo_nbr() << ", "
-              << symbol_table.exo_nbr() << ");" << endl
-              << "M_.Correlation_matrix = eye(" << symbol_table.exo_nbr() << ", "
-              << symbol_table.exo_nbr() << ");" << endl;
-
-  if (mod_file_struct.calibrated_measurement_errors)
-    mOutputFile << "M_.H = zeros(" << symbol_table.observedVariablesNbr() << ", "
-                << symbol_table.observedVariablesNbr() << ");" << endl
-                << "M_.Correlation_matrix_ME = eye(" << symbol_table.observedVariablesNbr() << ", "
-                << symbol_table.observedVariablesNbr() << ");" << endl;
-  else
-    mOutputFile << "M_.H = 0;" << endl
-                << "M_.Correlation_matrix_ME = 1;" << endl;
-
-  // May be later modified by a shocks block
-  mOutputFile << "M_.sigma_e_is_diagonal = 1;" << endl;
-
-  // Initialize M_.det_shocks
-  mOutputFile << "M_.det_shocks = [];" << endl;
 
   if (linear == 1)
     mOutputFile << "options_.linear = 1;" << endl;
@@ -747,22 +740,22 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
   if (block && !byte_code)
     mOutputFile << "addpath " << basename << ";" << endl;
 
-  mOutputFile << "M_.orig_eq_nbr = " << orig_eqn_nbr << ";" << endl
-              << "M_.eq_nbr = " << dynamic_model.equation_number() << ";" << endl
-              << "M_.ramsey_eq_nbr = " << ramsey_eqn_nbr << ";" << endl;
-
   if (dynamic_model.equation_number() > 0)
     {
-      dynamic_model.writeOutput(mOutputFile, basename, block, byte_code, use_dll, mod_file_struct.order_option, mod_file_struct.estimation_present);
+      dynamic_model.writeM_Output(M_OutputFile, basename, block, byte_code, use_dll,
+                                  mod_file_struct.order_option, mod_file_struct.estimation_present);
+      dynamic_model.writeOutput(mOutputFile);
       if (!no_static)
-        static_model.writeOutput(mOutputFile, block);
+        static_model.writeM_Output(M_OutputFile, block);
     }
 
   // Print statements
   for (vector<Statement *>::const_iterator it = statements.begin();
        it != statements.end(); it++)
     {
+      (*it)->writeM_Output(M_OutputFile, basename);
       (*it)->writeOutput(mOutputFile, basename);
+
 
       /* Special treatment for initval block: insert initial values for the
          auxiliary variables and initialize exo det */
@@ -820,6 +813,7 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
     mOutputFile << "diary off" << endl;
 
   mOutputFile.close();
+  M_OutputFile.close();
 
   // Create static and dynamic files
   if (dynamic_model.equation_number() > 0)
@@ -840,3 +834,37 @@ ModFile::writeOutputFiles(const string &basename, bool clear_all, bool clear_glo
   cout << "done" << endl;
 }
 
+void
+ModFile::writeM_(ofstream &M_OutputFile, const string &basename) const
+{
+  M_OutputFile << "function M_ = " << basename << "_M_(M_)" << endl
+               << "%" << endl
+               << "% Created by the Dynare preprocessor" << endl
+               << "%" << endl
+               << "M_.fname = '" << basename << "';" << endl;
+
+  // Initialize M_.Sigma_e, M_.Correlation_matrix, M_.H, and M_.Correlation_matrix_ME
+  M_OutputFile << "M_.Sigma_e = zeros(" << symbol_table.exo_nbr() << ", "
+              << symbol_table.exo_nbr() << ");" << endl
+              << "M_.Correlation_matrix = eye(" << symbol_table.exo_nbr() << ", "
+              << symbol_table.exo_nbr() << ");" << endl;
+
+  if (mod_file_struct.calibrated_measurement_errors)
+    M_OutputFile << "M_.H = zeros(" << symbol_table.observedVariablesNbr() << ", "
+                << symbol_table.observedVariablesNbr() << ");" << endl
+                << "M_.Correlation_matrix_ME = eye(" << symbol_table.observedVariablesNbr() << ", "
+                << symbol_table.observedVariablesNbr() << ");" << endl;
+  else
+    M_OutputFile << "M_.H = 0;" << endl
+                << "M_.Correlation_matrix_ME = 1;" << endl;
+
+  // May be later modified by a shocks block
+  M_OutputFile << "M_.sigma_e_is_diagonal = 1;" << endl;
+
+  // Initialize M_.det_shocks
+  M_OutputFile << "M_.det_shocks = [];" << endl;
+
+  M_OutputFile << "M_.orig_eq_nbr = " << orig_eqn_nbr << ";" << endl
+               << "M_.eq_nbr = " << dynamic_model.equation_number() << ";" << endl
+               << "M_.ramsey_eq_nbr = " << ramsey_eqn_nbr << ";" << endl;
+}

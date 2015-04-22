@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2014 Dynare Team
+ * Copyright (C) 2006-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -135,6 +135,7 @@ public:
     \param basename is the name of the modfile (without extension) which can be used to build auxiliary files
   */
   virtual void writeOutput(ostream &output, const string &basename) const = 0;
+  virtual void writeM_Output(ostream &output, const string &basename);
   virtual void writeCOutput(ostream &output, const string &basename);
 };
 
@@ -145,6 +146,7 @@ private:
 public:
   NativeStatement(const string &native_statement_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeM_Output(ostream &output, const string &basename);
 };
 
 class OptionsList

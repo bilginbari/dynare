@@ -64,6 +64,11 @@ Statement::checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &wa
 }
 
 void
+Statement::writeM_Output(ostream &output, const string &basename)
+{
+}
+
+void
 Statement::writeCOutput(ostream &output, const string &basename)
 {
 }
@@ -89,6 +94,12 @@ NativeStatement::writeOutput(ostream &output, const string &basename) const
   string ns = regex_replace(native_statement, regex_lookbehind, "dates('$&')");
   ns = regex_replace(ns, regex_dollar, "$2" ); //replace $DATE with DATE
   output << ns << endl;
+}
+
+void
+NativeStatement::writeM_Output(ostream &output, const string &basename)
+{
+  writeOutput(output, basename);
 }
 
 void

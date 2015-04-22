@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2014 Dynare Team
+ * Copyright (C) 2003-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -41,6 +41,7 @@ public:
                      const SymbolTable &symbol_table_arg);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeM_Output(ostream &output, const string &basename);
   virtual void writeCOutput(ostream &output, const string &basename);
   //! Fill eval context with parameter value
   void fillEvalContext(eval_context_t &eval_context) const;
@@ -111,6 +112,7 @@ public:
   //! Workaround for trac ticket #157
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeM_Output(ostream &output, const string &basename);
 };
 
 class InitvalFileStatement : public Statement
@@ -167,6 +169,7 @@ public:
                                     const SymbolTable &symbol_table_arg,
                                     WarningConsolidation &warnings);
   virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeM_Output(ostream &output, const string &basename);
   //! Fill eval context with parameters/variables values
   void fillEvalContext(eval_context_t &eval_context) const;
 };

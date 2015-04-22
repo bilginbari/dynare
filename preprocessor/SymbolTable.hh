@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2014 Dynare Team
+ * Copyright (C) 2003-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -276,6 +276,8 @@ public:
   inline int orig_endo_nbr() const throw (NotYetFrozenException);
   //! Write output of this class
   void writeOutput(ostream &output) const throw (NotYetFrozenException);
+  //! Write M_-related output
+  void writeM_Output(ostream &output) const throw (NotYetFrozenException);
   //! Write C output of this class
   void writeCOutput(ostream &output) const throw (NotYetFrozenException);
   //! Write CC output of this class

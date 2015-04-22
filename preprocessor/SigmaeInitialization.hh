@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2010 Dynare Team
+ * Copyright (C) 2003-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -58,6 +58,7 @@ private:
 public:
   SigmaeStatement(const matrix_t &matrix_arg) throw (MatrixFormException);
   virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeM_Output(ostream &output, const string &basename);
 };
 
 #endif

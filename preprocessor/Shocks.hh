@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2014 Dynare Team
+ * Copyright (C) 2003-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -78,6 +78,7 @@ public:
                   const covar_and_corr_shocks_t &corr_shocks_arg,
                   const SymbolTable &symbol_table_arg);
   virtual void writeOutput(ostream &output, const string &basename) const;
+  virtual void writeM_Output(ostream &output, const string &basename);
   virtual void checkPass(ModFileStructure &mod_file_struct, WarningConsolidation &warnings);
 };
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003-2014 Dynare Team
+ * Copyright (C) 2003-2015 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -84,6 +84,11 @@ ShocksStatement::ShocksStatement(bool overwrite_arg,
 
 void
 ShocksStatement::writeOutput(ostream &output, const string &basename) const
+{
+}
+
+void
+ShocksStatement::writeM_Output(ostream &output, const string &basename)
 {
   output << "%" << endl
          << "% SHOCKS instructions" << endl
